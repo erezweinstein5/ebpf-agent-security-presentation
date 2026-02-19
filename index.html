@@ -282,95 +282,189 @@ python3  openat <span class="str">"/tmp/lab/test.txt"</span> <span class="var">F
   <h2>System Architecture</h2>
 
   <div class="diagram">
-    <svg width="680" height="340" viewBox="0 0 680 340">
-      <!-- User -->
-      <rect x="10" y="20" width="120" height="50" rx="8" fill="#2d3748" stroke="#4a5568" stroke-width="1.5"/>
-      <text x="70" y="50" text-anchor="middle" fill="#e2e8f0" font-size="13" font-weight="600">User Task</text>
-
-      <!-- Arrow -->
-      <line x1="130" y1="45" x2="175" y2="45" stroke="#7b2ff7" stroke-width="2" marker-end="url(#arrow)"/>
-
-      <!-- Agent -->
-      <rect x="180" y="10" width="170" height="70" rx="8" fill="#1a365d" stroke="#2b6cb0" stroke-width="1.5"/>
-      <text x="265" y="35" text-anchor="middle" fill="#90cdf4" font-size="11" font-weight="600">LangGraph Agent</text>
-      <text x="265" y="55" text-anchor="middle" fill="#bee3f8" font-size="9">plan &rarr; execute &rarr; tools &rarr; summarize</text>
-
-      <!-- Tools box -->
-      <rect x="180" y="100" width="170" height="90" rx="8" fill="#2d1810" stroke="#c05621" stroke-width="1.5"/>
-      <text x="265" y="122" text-anchor="middle" fill="#fbd38d" font-size="11" font-weight="700">Agent Tools</text>
-      <text x="265" y="140" text-anchor="middle" fill="#fefcbf" font-size="9">read_file()</text>
-      <text x="265" y="155" text-anchor="middle" fill="#fefcbf" font-size="9">run_command()</text>
-      <text x="265" y="170" text-anchor="middle" fill="#fefcbf" font-size="9">http_request()</text>
-
-      <!-- Arrow down -->
-      <line x1="265" y1="80" x2="265" y2="100" stroke="#c05621" stroke-width="2" marker-end="url(#arrow-orange)"/>
-
-      <!-- Kernel boundary -->
-      <line x1="10" y1="215" x2="670" y2="215" stroke="#ff7b72" stroke-width="1" stroke-dasharray="6,3"/>
-      <text x="340" y="210" text-anchor="middle" fill="#ff7b72" font-size="9" font-weight="600">KERNEL BOUNDARY &mdash; syscalls pass through here</text>
-
-      <!-- eBPF probes -->
-      <rect x="10" y="235" width="200" height="90" rx="8" fill="#1a2e1a" stroke="#38a169" stroke-width="1.5"/>
-      <text x="110" y="258" text-anchor="middle" fill="#9ae6b4" font-size="11" font-weight="700">eBPF Probes</text>
-      <text x="110" y="278" text-anchor="middle" fill="#c6f6d5" font-size="9">opensnoop &rarr; file opens</text>
-      <text x="110" y="293" text-anchor="middle" fill="#c6f6d5" font-size="9">execsnoop &rarr; process execs</text>
-      <text x="110" y="308" text-anchor="middle" fill="#c6f6d5" font-size="9">bpftrace &rarr; TCP connections</text>
-
-      <!-- Arrow from tools to eBPF -->
-      <path d="M 220 190 L 220 215 L 110 215 L 110 235" stroke="#38a169" stroke-width="2" fill="none" marker-end="url(#arrow-green)" stroke-dasharray="4,2"/>
-
-      <!-- Trace files -->
-      <rect x="240" y="235" width="170" height="90" rx="8" fill="#2d2d1a" stroke="#d69e2e" stroke-width="1.5"/>
-      <text x="325" y="258" text-anchor="middle" fill="#fefcbf" font-size="11" font-weight="700">Trace Files</text>
-      <text x="325" y="278" text-anchor="middle" fill="#fefcbf" font-size="9">file_opens.log</text>
-      <text x="325" y="293" text-anchor="middle" fill="#fefcbf" font-size="9">exec_snoop.log</text>
-      <text x="325" y="308" text-anchor="middle" fill="#fefcbf" font-size="9">tcp_connect.log</text>
-
-      <!-- Arrow eBPF to traces -->
-      <line x1="210" y1="280" x2="240" y2="280" stroke="#d69e2e" stroke-width="2" marker-end="url(#arrow-yellow)"/>
-
-      <!-- Inspector -->
-      <rect x="450" y="100" width="210" height="90" rx="8" fill="#1a1a3e" stroke="#805ad5" stroke-width="1.5"/>
-      <text x="555" y="125" text-anchor="middle" fill="#d6bcfa" font-size="11" font-weight="700">Inspector Agent (Claude)</text>
-      <text x="555" y="145" text-anchor="middle" fill="#e9d8fd" font-size="9">Reads: source code + task + traces</text>
-      <text x="555" y="162" text-anchor="middle" fill="#e9d8fd" font-size="9">Outputs: CLEAN / SUSPICIOUS / COMPROMISED</text>
-
-      <!-- Arrow traces to inspector -->
-      <path d="M 410 280 L 430 280 L 430 145 L 450 145" stroke="#805ad5" stroke-width="2" fill="none" marker-end="url(#arrow-purple)"/>
-
-      <!-- Arrow agent source to inspector -->
-      <line x1="350" y1="45" x2="450" y2="120" stroke="#805ad5" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arrow-purple)"/>
-      <text x="415" y="70" text-anchor="middle" fill="#d6bcfa" font-size="8">source code</text>
-
-      <!-- Report -->
-      <rect x="500" y="235" width="160" height="60" rx="8" fill="#3e1a1a" stroke="#fc8181" stroke-width="1.5"/>
-      <text x="580" y="260" text-anchor="middle" fill="#fed7d7" font-size="11" font-weight="700">Security Report</text>
-      <text x="580" y="278" text-anchor="middle" fill="#feb2b2" font-size="9">verdict + evidence + recommendations</text>
-
-      <!-- Arrow inspector to report -->
-      <line x1="555" y1="190" x2="555" y2="235" stroke="#fc8181" stroke-width="2" marker-end="url(#arrow-red)"/>
-
-      <!-- Arrow defs -->
+    <svg width="750" height="410" viewBox="0 0 750 410">
       <defs>
-        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
           <path d="M 0 0 L 10 5 L 0 10 z" fill="#7b2ff7"/>
         </marker>
-        <marker id="arrow-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-          <path d="M 0 0 L 10 5 L 0 10 z" fill="#c05621"/>
+        <marker id="arrow-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#dd6b20"/>
         </marker>
-        <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-          <path d="M 0 0 L 10 5 L 0 10 z" fill="#38a169"/>
+        <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#48bb78"/>
         </marker>
-        <marker id="arrow-yellow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-          <path d="M 0 0 L 10 5 L 0 10 z" fill="#d69e2e"/>
+        <marker id="arrow-yellow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#ecc94b"/>
         </marker>
-        <marker id="arrow-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-          <path d="M 0 0 L 10 5 L 0 10 z" fill="#805ad5"/>
+        <marker id="arrow-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#b794f4"/>
         </marker>
-        <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
           <path d="M 0 0 L 10 5 L 0 10 z" fill="#fc8181"/>
         </marker>
+        <marker id="arrow-cyan" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#76e4f7"/>
+        </marker>
+        <!-- Glow filter -->
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="2" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <!-- Shadow filter -->
+        <filter id="shadow" x="-5%" y="-5%" width="110%" height="115%">
+          <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.4"/>
+        </filter>
       </defs>
+
+      <!-- ============ USER SPACE zone ============ -->
+      <rect x="5" y="5" width="740" height="210" rx="12" fill="rgba(26,54,93,0.25)" stroke="rgba(66,153,225,0.3)" stroke-width="1"/>
+      <text x="22" y="26" fill="rgba(144,205,244,0.6)" font-size="10" font-weight="600" letter-spacing="2">USER SPACE</text>
+
+      <!-- ============ KERNEL SPACE zone ============ -->
+      <rect x="5" y="230" width="480" height="175" rx="12" fill="rgba(26,78,26,0.25)" stroke="rgba(72,187,120,0.3)" stroke-width="1"/>
+      <text x="22" y="251" fill="rgba(154,230,180,0.6)" font-size="10" font-weight="600" letter-spacing="2">KERNEL SPACE</text>
+
+      <!-- ============ ANALYSIS zone ============ -->
+      <rect x="500" y="230" width="245" height="175" rx="12" fill="rgba(85,60,154,0.2)" stroke="rgba(183,148,244,0.3)" stroke-width="1"/>
+      <text x="517" y="251" fill="rgba(214,188,250,0.6)" font-size="10" font-weight="600" letter-spacing="2">ANALYSIS</text>
+
+      <!-- ================ KERNEL BOUNDARY LINE ================ -->
+      <line x1="5" y1="220" x2="745" y2="220" stroke="#ff7b72" stroke-width="2.5" stroke-dasharray="8,4" filter="url(#glow)"/>
+      <rect x="240" y="210" width="280" height="20" rx="4" fill="#24243e"/>
+      <text x="380" y="224" text-anchor="middle" fill="#ff7b72" font-size="10" font-weight="700" letter-spacing="1">SYSCALL BOUNDARY (openat, execve, connect)</text>
+
+      <!-- ========== 1. USER TASK ========== -->
+      <rect x="20" y="42" width="115" height="55" rx="10" fill="#2d3748" stroke="#718096" stroke-width="1.5" filter="url(#shadow)"/>
+      <text x="77" y="66" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="700">User Task</text>
+      <text x="77" y="82" text-anchor="middle" fill="#a0aec0" font-size="8">"Summarize this file"</text>
+
+      <!-- Arrow: User → Agent -->
+      <line x1="135" y1="70" x2="170" y2="70" stroke="#76e4f7" stroke-width="2.5" marker-end="url(#arrow-cyan)"/>
+
+      <!-- ========== 2. LANGGRAPH AGENT ========== -->
+      <rect x="175" y="35" width="200" height="80" rx="10" fill="linear-gradient(135deg,#1a365d,#2a4a7f)" stroke="#4299e1" stroke-width="2" filter="url(#shadow)"/>
+      <rect x="175" y="35" width="200" height="80" rx="10" fill="#1a365d" stroke="#4299e1" stroke-width="2" filter="url(#shadow)"/>
+      <!-- Icon: brain/circuit -->
+      <circle cx="202" cy="60" r="11" fill="none" stroke="#90cdf4" stroke-width="1.5"/>
+      <circle cx="202" cy="60" r="4" fill="#90cdf4"/>
+      <line x1="202" y1="49" x2="202" y2="44" stroke="#90cdf4" stroke-width="1.5"/>
+      <line x1="210" y1="53" x2="214" y2="49" stroke="#90cdf4" stroke-width="1.5"/>
+      <line x1="210" y1="67" x2="214" y2="71" stroke="#90cdf4" stroke-width="1.5"/>
+      <line x1="194" y1="53" x2="190" y2="49" stroke="#90cdf4" stroke-width="1.5"/>
+      <text x="220" y="58" fill="#90cdf4" font-size="13" font-weight="700">LangGraph Agent</text>
+      <text x="220" y="72" fill="#bee3f8" font-size="8.5">Claude Haiku via AWS Bedrock</text>
+      <!-- Step indicators -->
+      <rect x="186" y="88" width="36" height="16" rx="4" fill="#2b6cb0"/>
+      <text x="204" y="100" text-anchor="middle" fill="#bee3f8" font-size="7" font-weight="600">plan</text>
+      <text x="227" y="100" fill="#4a5568" font-size="8">&rarr;</text>
+      <rect x="234" y="88" width="40" height="16" rx="4" fill="#2b6cb0"/>
+      <text x="254" y="100" text-anchor="middle" fill="#bee3f8" font-size="7" font-weight="600">execute</text>
+      <text x="279" y="100" fill="#4a5568" font-size="8">&rarr;</text>
+      <rect x="286" y="88" width="36" height="16" rx="4" fill="#2b6cb0"/>
+      <text x="304" y="100" text-anchor="middle" fill="#bee3f8" font-size="7" font-weight="600">tools</text>
+      <text x="327" y="100" fill="#4a5568" font-size="8">&rarr;</text>
+      <rect x="334" y="88" width="32" height="16" rx="4" fill="#2b6cb0"/>
+      <text x="350" y="100" text-anchor="middle" fill="#bee3f8" font-size="7" font-weight="600">done</text>
+
+      <!-- Arrow: Agent → Tools -->
+      <line x1="275" y1="115" x2="275" y2="130" stroke="#dd6b20" stroke-width="2.5" marker-end="url(#arrow-orange)"/>
+
+      <!-- ========== 3. AGENT TOOLS ========== -->
+      <rect x="175" y="135" width="200" height="75" rx="10" fill="#2d1810" stroke="#dd6b20" stroke-width="2" filter="url(#shadow)"/>
+      <!-- Warning icon -->
+      <text x="195" y="158" fill="#fbd38d" font-size="14">&#9888;</text>
+      <text x="213" y="157" fill="#fbd38d" font-size="13" font-weight="700">Agent Tools</text>
+      <!-- Tool pills -->
+      <rect x="190" y="166" width="80" height="16" rx="8" fill="#9c4221"/>
+      <text x="230" y="178" text-anchor="middle" fill="#fefcbf" font-size="8" font-weight="600">read_file()</text>
+      <rect x="278" y="166" width="85" height="16" rx="8" fill="#9c4221"/>
+      <text x="320" y="178" text-anchor="middle" fill="#fefcbf" font-size="8" font-weight="600">run_command()</text>
+      <rect x="190" y="186" width="85" height="16" rx="8" fill="#9c4221"/>
+      <text x="232" y="198" text-anchor="middle" fill="#fefcbf" font-size="8" font-weight="600">http_request()</text>
+      <!-- "no enforcement" label -->
+      <rect x="283" y="186" width="82" height="16" rx="8" fill="rgba(252,129,129,0.2)" stroke="#fc8181" stroke-width="0.5"/>
+      <text x="324" y="197" text-anchor="middle" fill="#fc8181" font-size="7" font-weight="600">NO ENFORCEMENT</text>
+
+      <!-- Arrow: Tools → Kernel (syscalls going down) -->
+      <path d="M 240 210 L 240 220 L 240 265" stroke="#48bb78" stroke-width="2.5" fill="none" marker-end="url(#arrow-green)"/>
+      <path d="M 310 210 L 310 220 L 310 265" stroke="#48bb78" stroke-width="2.5" fill="none" marker-end="url(#arrow-green)"/>
+      <!-- Syscall labels on arrows -->
+      <text x="225" y="246" fill="#68d391" font-size="7" font-weight="600" transform="rotate(-90,225,246)">openat()</text>
+      <text x="325" y="246" fill="#68d391" font-size="7" font-weight="600" transform="rotate(-90,325,246)">execve()</text>
+
+      <!-- ========== 4. eBPF PROBES (kernel) ========== -->
+      <rect x="20" y="265" width="455" height="55" rx="10" fill="#0d2818" stroke="#48bb78" stroke-width="2" filter="url(#shadow)"/>
+      <!-- eBPF logo-ish hexagon -->
+      <polygon points="50,280 62,274 74,280 74,292 62,298 50,292" fill="none" stroke="#48bb78" stroke-width="1.5"/>
+      <text x="62" y="290" text-anchor="middle" fill="#48bb78" font-size="7" font-weight="700">eBPF</text>
+      <!-- Probe boxes -->
+      <rect x="88" y="274" width="110" height="38" rx="6" fill="#1a3a1a" stroke="#38a169" stroke-width="1"/>
+      <text x="143" y="290" text-anchor="middle" fill="#9ae6b4" font-size="9" font-weight="700">opensnoop</text>
+      <text x="143" y="303" text-anchor="middle" fill="#68d391" font-size="7">tracepoint: openat()</text>
+      <rect x="208" y="274" width="110" height="38" rx="6" fill="#1a3a1a" stroke="#38a169" stroke-width="1"/>
+      <text x="263" y="290" text-anchor="middle" fill="#9ae6b4" font-size="9" font-weight="700">execsnoop</text>
+      <text x="263" y="303" text-anchor="middle" fill="#68d391" font-size="7">tracepoint: execve()</text>
+      <rect x="328" y="274" width="138" height="38" rx="6" fill="#1a3a1a" stroke="#38a169" stroke-width="1"/>
+      <text x="397" y="290" text-anchor="middle" fill="#9ae6b4" font-size="9" font-weight="700">bpftrace</text>
+      <text x="397" y="303" text-anchor="middle" fill="#68d391" font-size="7">inet_sock_set_state (TCP)</text>
+
+      <!-- Arrow: eBPF → Trace Files -->
+      <line x1="248" y1="320" x2="248" y2="340" stroke="#ecc94b" stroke-width="2.5" marker-end="url(#arrow-yellow)"/>
+
+      <!-- ========== 5. TRACE FILES ========== -->
+      <rect x="80" y="345" width="340" height="50" rx="10" fill="#2d2d0d" stroke="#ecc94b" stroke-width="2" filter="url(#shadow)"/>
+      <!-- File icons -->
+      <rect x="100" y="354" width="85" height="32" rx="5" fill="#3d3d0a" stroke="#d69e2e" stroke-width="0.5"/>
+      <text x="142" y="367" text-anchor="middle" fill="#fefcbf" font-size="7" font-weight="600">file_opens.log</text>
+      <text x="142" y="379" text-anchor="middle" fill="#d69e2e" font-size="6">opened: /etc/passwd</text>
+      <rect x="195" y="354" width="85" height="32" rx="5" fill="#3d3d0a" stroke="#d69e2e" stroke-width="0.5"/>
+      <text x="237" y="367" text-anchor="middle" fill="#fefcbf" font-size="7" font-weight="600">exec_snoop.log</text>
+      <text x="237" y="379" text-anchor="middle" fill="#d69e2e" font-size="6">exec: id, whoami</text>
+      <rect x="290" y="354" width="85" height="32" rx="5" fill="#3d3d0a" stroke="#d69e2e" stroke-width="0.5"/>
+      <text x="332" y="367" text-anchor="middle" fill="#fefcbf" font-size="7" font-weight="600">tcp_connect.log</text>
+      <text x="332" y="379" text-anchor="middle" fill="#d69e2e" font-size="6">93.184.216.34:443</text>
+
+      <!-- Arrow: Traces → Inspector -->
+      <path d="M 420 370 L 450 370 L 480 370 L 510 315" stroke="#b794f4" stroke-width="2.5" fill="none" marker-end="url(#arrow-purple)"/>
+      <text x="472" y="358" fill="#d6bcfa" font-size="7" font-weight="600">evidence</text>
+
+      <!-- ========== 6. INSPECTOR AGENT (analysis zone) ========== -->
+      <rect x="515" y="262" width="220" height="72" rx="10" fill="#1a1a3e" stroke="#805ad5" stroke-width="2" filter="url(#shadow)"/>
+      <!-- Magnifying glass icon -->
+      <circle cx="538" cy="288" r="9" fill="none" stroke="#d6bcfa" stroke-width="1.5"/>
+      <line x1="544" y1="294" x2="551" y2="301" stroke="#d6bcfa" stroke-width="2"/>
+      <text x="556" y="283" fill="#d6bcfa" font-size="12" font-weight="700">Inspector Agent</text>
+      <text x="556" y="296" fill="#e9d8fd" font-size="8">Claude analyzes traces vs source code</text>
+      <text x="556" y="309" fill="#e9d8fd" font-size="8">to find mismatches in behavior</text>
+
+      <!-- Arrow: Agent source → Inspector (dashed, from user space) -->
+      <path d="M 375 75 L 500 75 L 625 75 L 625 262" stroke="#b794f4" stroke-width="1.5" stroke-dasharray="5,3" fill="none" marker-end="url(#arrow-purple)"/>
+      <rect x="580" y="155" width="90" height="18" rx="4" fill="#24243e"/>
+      <text x="625" y="167" text-anchor="middle" fill="#d6bcfa" font-size="8" font-weight="600">source code + task</text>
+
+      <!-- Arrow: Inspector → Report -->
+      <line x1="625" y1="334" x2="625" y2="352" stroke="#fc8181" stroke-width="2.5" marker-end="url(#arrow-red)"/>
+
+      <!-- ========== 7. SECURITY REPORT ========== -->
+      <rect x="520" y="357" width="210" height="42" rx="10" fill="#3e1a1a" stroke="#fc8181" stroke-width="2" filter="url(#shadow)"/>
+      <!-- Shield icon -->
+      <path d="M 542 370 L 542 385 Q 542 392 549 395 Q 556 392 556 385 L 556 370 L 549 367 Z" fill="none" stroke="#fc8181" stroke-width="1.5"/>
+      <text x="564" y="377" fill="#fed7d7" font-size="11" font-weight="700">Security Report</text>
+      <text x="564" y="392" fill="#feb2b2" font-size="8">CLEAN / SUSPICIOUS / COMPROMISED</text>
+
+      <!-- ========== NUMBERED FLOW LABELS ========== -->
+      <circle cx="152" cy="70" r="8" fill="#7b2ff7"/>
+      <text x="152" y="74" text-anchor="middle" fill="#fff" font-size="8" font-weight="700">1</text>
+      <circle cx="275" cy="125" r="8" fill="#dd6b20"/>
+      <text x="275" y="129" text-anchor="middle" fill="#fff" font-size="8" font-weight="700">2</text>
+      <circle cx="275" cy="236" r="8" fill="#48bb78"/>
+      <text x="275" y="240" text-anchor="middle" fill="#fff" font-size="8" font-weight="700">3</text>
+      <circle cx="262" cy="335" r="8" fill="#ecc94b"/>
+      <text x="262" y="339" text-anchor="middle" fill="#1a1a2e" font-size="8" font-weight="700">4</text>
+      <circle cx="490" cy="350" r="8" fill="#b794f4"/>
+      <text x="490" y="354" text-anchor="middle" fill="#fff" font-size="8" font-weight="700">5</text>
+      <circle cx="625" cy="347" r="8" fill="#fc8181"/>
+      <text x="625" y="351" text-anchor="middle" fill="#fff" font-size="8" font-weight="700">6</text>
     </svg>
   </div>
 
